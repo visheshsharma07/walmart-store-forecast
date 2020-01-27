@@ -1,10 +1,13 @@
+# spark-submit --conf spark.dynamicAllocation.enabled=true --conf spark.sql.broadcastTimeout=-1 --conf spark.sql.autoBroadcastJoinThreshold=-1 eda_data.py
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 import pyspark
 from pyspark.sql.functions import broadcast
 from pyspark import HiveContext
+from pyspark.ml.stat import Summarizer
+import pandas as pd
 
-conf = pyspark.SparkConf().setAppName('appName').setMaster('local[*]')
+conf = pyspark.SparkConf().setAppName('MasterFrame').setMaster('local[*]')
 sc = pyspark.SparkContext(conf=conf)
 spark = SparkSession(sc)
 sqlContext = HiveContext(sc)
@@ -51,8 +54,12 @@ cond_3 = tmp_['Date_Train'] == features_df['Date_Features']
 final_ = tmp_.join(features_df, (cond_2) & (cond_3),"inner") \
                 .drop('Date_Train','Store_Train')
 
-final_.show(5,False)
-final_.printSchema()
-print(final_.count())
+# for i in final_.columns:
+#     final_.filter('{} is null'.format(i)).show(3,False)
+# final_.printSchema()
+
+pd_final = final_.toPandas()
+
+pd_final.head() 
 
 sc.stop()
